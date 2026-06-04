@@ -20,12 +20,75 @@
  */
 
 import { chromium } from 'playwright';
-import { readFileSync, writeFileSync } from 'fs';
-import { resolve, dirname } from 'path';
+import { createServer } from 'http';
+import { existsSync, readFileSync, statSync, writeFileSync } from 'fs';
+import { extname, join, normalize, resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const DRAWIO_WEBAPP = resolve(__dirname, '../drawio/src/main/webapp');
 const EXPORT_HTML = resolve(__dirname, 'export-cli.html');
+
+const MIME_TYPES = {
+	'.css': 'text/css',
+	'.gif': 'image/gif',
+	'.html': 'text/html',
+	'.ico': 'image/x-icon',
+	'.js': 'text/javascript',
+	'.json': 'application/json',
+	'.png': 'image/png',
+	'.svg': 'image/svg+xml',
+	'.txt': 'text/plain',
+	'.xml': 'application/xml',
+};
+
+function serveFile(res, filePath) {
+	if (!existsSync(filePath) || !statSync(filePath).isFile()) {
+		res.writeHead(404, { 'Content-Type': 'text/plain' });
+		res.end('Not found');
+		return;
+	}
+
+	res.writeHead(200, { 'Content-Type': MIME_TYPES[extname(filePath)] || 'application/octet-stream' });
+	res.end(readFileSync(filePath));
+}
+
+function startDrawioServer() {
+	return new Promise((resolveServer, reject) => {
+		const server = createServer((req, res) => {
+			try {
+				const url = new URL(req.url || '/', 'http://127.0.0.1');
+				const pathname = decodeURIComponent(url.pathname);
+
+				if (pathname === '/' || pathname === '/export-cli.html') {
+					serveFile(res, EXPORT_HTML);
+					return;
+				}
+
+				const relative = normalize(pathname.replace(/^\/+/, ''));
+				if (relative.startsWith('..')) {
+					res.writeHead(403, { 'Content-Type': 'text/plain' });
+					res.end('Forbidden');
+					return;
+				}
+
+				serveFile(res, join(DRAWIO_WEBAPP, relative));
+			} catch (err) {
+				res.writeHead(500, { 'Content-Type': 'text/plain' });
+				res.end(String(err && err.message || err));
+			}
+		});
+
+		server.on('error', reject);
+		server.listen(0, '127.0.0.1', () => {
+			const address = server.address();
+			resolveServer({
+				server,
+				url: `http://127.0.0.1:${address.port}/export-cli.html`,
+			});
+		});
+	});
+}
 
 function help() {
 	console.error(`draw.io CLI Export Tool
@@ -93,7 +156,12 @@ async function main() {
 		throw new Error('Input file is empty or too small');
 	}
 
+	if (!existsSync(DRAWIO_WEBAPP)) {
+		throw new Error(`draw.io webapp not found: ${DRAWIO_WEBAPP}`);
+	}
+
 	console.error(`Launching browser...`);
+	const drawioServer = await startDrawioServer();
 	const browser = await chromium.launch({
 		headless: opts.headless,
 		args: [
@@ -118,7 +186,7 @@ async function main() {
 
 	try {
 		console.error(`Loading draw.io engine...`);
-		await page.goto('file://' + EXPORT_HTML, {
+		await page.goto(drawioServer.url, {
 			waitUntil: 'networkidle',
 			timeout: opts.timeout,
 		});
@@ -149,6 +217,7 @@ async function main() {
 		console.error(`Done: ${outputFile} (${buffer.length} bytes)`);
 	} finally {
 		await browser.close();
+		await new Promise(resolveClose => drawioServer.server.close(resolveClose));
 	}
 }
 
