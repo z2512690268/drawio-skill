@@ -1,0 +1,523 @@
+{
+  "canvas": {
+    "width": 1000,
+    "height": 460
+  },
+  "constraints": [
+    {
+      "type": "align_top",
+      "targets": [
+        "entity_row.amint.box.t",
+        "entity_row.atbg.box.t"
+      ]
+    },
+    {
+      "type": "align_bot",
+      "targets": [
+        "entity_row.amint.box.b",
+        "entity_row.atbg.box.b",
+        "entity_row.ambg.box.b"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "ba1",
+      "from": "bgpu",
+      "to": "broll",
+      "exit": "E",
+      "enter": "W"
+    },
+    {
+      "id": "ba2",
+      "from": "broll",
+      "to": "brwd",
+      "exit": "E",
+      "enter": "W"
+    },
+    {
+      "id": "ba3",
+      "from": "brwd",
+      "to": "btrn",
+      "exit": "E",
+      "enter": "W"
+    },
+    {
+      "id": "ambranch",
+      "from": "amroll",
+      "to": "amint",
+      "exit": "N",
+      "enter": "W",
+      "stroke": "#F57C00",
+      "width": 2.5,
+      "exit_y": 1.0,
+      "waypoints": [
+        [
+          392,
+          170
+        ],
+        [
+          565,
+          170
+        ]
+      ]
+    },
+    {
+      "id": "ai2t",
+      "from": "amint",
+      "to": "atbg",
+      "exit": "E",
+      "enter": "W",
+      "stroke": "#2E7D32",
+      "width": 2.5
+    },
+    {
+      "id": "ai2m",
+      "from": "amint",
+      "to": "amcross",
+      "exit": "S",
+      "enter": "E",
+      "stroke": "#4527A0",
+      "width": 2.5,
+      "dashed": true,
+      "exit_x": 0.3,
+      "waypoints": [
+        [
+          550,
+          320
+        ],
+        [
+          450,
+          320
+        ],
+        [
+          350,
+          320
+        ]
+      ]
+    },
+    {
+      "id": "ama1",
+      "from": "amroll",
+      "to": "amrwd",
+      "exit": "E",
+      "enter": "W"
+    },
+    {
+      "id": "ama3",
+      "from": "amroll",
+      "to": "amtrn",
+      "exit": "S",
+      "enter": "N"
+    },
+    {
+      "id": "ama4",
+      "from": "amrwd",
+      "to": "amsync",
+      "exit": "S",
+      "enter": "N"
+    },
+    {
+      "id": "ama2",
+      "from": "amtrn",
+      "to": "amsync",
+      "exit": "E",
+      "enter": "W"
+    }
+  ],
+  "labels": [
+    {
+      "id": "amshort",
+      "x": 315,
+      "y": 243,
+      "w": 30,
+      "h": 14,
+      "text": "short→",
+      "fs": 9,
+      "color": "#1565C0"
+    },
+    {
+      "id": "amtaillbl",
+      "x": 420,
+      "y": 170,
+      "w": 30,
+      "h": 14,
+      "text": "tail",
+      "fs": 10,
+      "color": "#F57C00"
+    },
+    {
+      "id": "amdispatch",
+      "x": 460,
+      "y": 170,
+      "w": 45,
+      "h": 14,
+      "text": "dispatch",
+      "fs": 10,
+      "color": "#F57C00"
+    },
+    {
+      "id": "amreturn",
+      "x": 460,
+      "y": 330,
+      "w": 45,
+      "h": 14,
+      "text": "result",
+      "fs": 10,
+      "color": "#4527A0"
+    }
+  ],
+  "root": {
+    "type": "vbox",
+    "gap": 6,
+    "children": [
+      {
+        "type": "container",
+        "id": "before",
+        "box": {
+          "x": 150,
+          "y": 28,
+          "w": 700,
+          "h": 100
+        },
+        "fill": "#FAFAFA",
+        "stroke": "#B0BEC5",
+        "children": [
+          {
+            "type": "text",
+            "id": "bt",
+            "text": "Before (veRL / OpenRLHF)",
+            "y": 5,
+            "w": 700,
+            "h": 18,
+            "fs": 12,
+            "bold": true,
+            "cx": 500
+          },
+          {
+            "type": "group",
+            "id": "before_body",
+            "children": [
+              {
+                "type": "hbox",
+                "id": "pipeline",
+                "y": 40,
+                "h": 32,
+                "gap": 80,
+                "x0": 210.0,
+                "children": [
+                  {
+                    "type": "cell",
+                    "id": "bgpu",
+                    "w": 110,
+                    "text": "GPU Pool (2ⁿ)",
+                    "sub": "All GPUs: infer+train",
+                    "fill": "#78909C",
+                    "tc": "#fff"
+                  },
+                  {
+                    "type": "cell",
+                    "id": "broll",
+                    "w": 80,
+                    "text": "Rollout",
+                    "fill": "#B0BEC5",
+                    "tc": "#fff"
+                  },
+                  {
+                    "type": "cell",
+                    "id": "brwd",
+                    "w": 75,
+                    "text": "Reward",
+                    "fill": "#B0BEC5",
+                    "tc": "#fff"
+                  },
+                  {
+                    "type": "cell",
+                    "id": "btrn",
+                    "w": 75,
+                    "text": "Train",
+                    "fill": "#B0BEC5",
+                    "tc": "#fff"
+                  }
+                ]
+              },
+              {
+                "type": "cell",
+                "id": "bpb",
+                "x": 210.0,
+                "y": 80,
+                "w": 580,
+                "h": 38,
+                "rx": true,
+                "fill": "#FFF3E0",
+                "stroke": "#E65100",
+                "sw": 2
+              },
+              {
+                "type": "text",
+                "id": "bpbt",
+                "x": 215.0,
+                "y": 82,
+                "w": 570,
+                "h": 16,
+                "text": "✦ Tail blocks the entire pipeline",
+                "fs": 10,
+                "color": "#BF360C",
+                "bold": true
+              },
+              {
+                "type": "text",
+                "id": "bpbb",
+                "x": 215.0,
+                "y": 99,
+                "w": 570,
+                "h": 18,
+                "text": "A single slow request stalls every task.<br>Cannot add tail-only GPU (breaks 2ⁿ topology).",
+                "fs": 9,
+                "color": "#424242"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "text",
+        "id": "tlbl",
+        "text": "Decouple tail into independent entity",
+        "fs": 10,
+        "color": "#F57C00",
+        "bold": true,
+        "cx": 500,
+        "y": 120
+      },
+      {
+        "type": "container",
+        "id": "after",
+        "box": {
+          "x": 150,
+          "y": 145,
+          "w": 700,
+          "h": 210
+        },
+        "fill": "#FAFAFA",
+        "stroke": "#B0BEC5",
+        "children": [
+          {
+            "type": "text",
+            "id": "at_title",
+            "text": "After (FMRL)",
+            "cx": 500,
+            "y": 147,
+            "fs": 12,
+            "bold": true
+          },
+          {
+            "type": "hbox",
+            "id": "entity_row",
+            "y": 180,
+            "gap": 10,
+            "x0": 175,
+            "children": [
+              {
+                "type": "container",
+                "id": "ambg",
+                "w": 380,
+                "h": 170,
+                "fill": "#E3F2FD",
+                "stroke": "#1565C0",
+                "sw": 2,
+                "children": [
+                  {
+                    "type": "title",
+                    "id": "ambg_t",
+                    "text": "Main Pool Entity",
+                    "fs": 14,
+                    "color": "#1565C0"
+                  },
+                  {
+                    "type": "hbox",
+                    "id": "ambg_cols",
+                    "gap": 30,
+                    "x0": 190,
+                    "y0": 208,
+                    "children": [
+                      {
+                        "type": "vbox",
+                        "id": "left_col",
+                        "gap": 8,
+                        "children": [
+                          {
+                            "type": "cell",
+                            "id": "amtasks",
+                            "h": 30,
+                            "text": "N Tasks",
+                            "sub": "vLLM + Megatron + Reward",
+                            "fill": "#BBDEFB"
+                          },
+                          {
+                            "type": "cell",
+                            "id": "amsched",
+                            "h": 30,
+                            "text": "Scheduler+Detector",
+                            "sub": "Monitors batch, ≥79%→trigger",
+                            "fill": "#FFF3E0"
+                          },
+                          {
+                            "type": "cell",
+                            "id": "amcross",
+                            "h": 30,
+                            "text": "Cross-Task Disp.",
+                            "sub": "Switches task while tail runs",
+                            "fill": "#FFE0B2"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "vbox",
+                        "id": "right_col",
+                        "gap": 8,
+                        "children": [
+                          {
+                            "type": "hbox",
+                            "gap": 15,
+                            "children": [
+                              {
+                                "type": "cell",
+                                "id": "amroll",
+                                "w": 85,
+                                "h": 30,
+                                "text": "Rollout",
+                                "fill": "#64B5F6",
+                                "tc": "#fff"
+                              },
+                              {
+                                "type": "cell",
+                                "id": "amrwd",
+                                "w": 80,
+                                "h": 30,
+                                "text": "Reward",
+                                "fill": "#64B5F6",
+                                "tc": "#fff"
+                              }
+                            ]
+                          },
+                          {
+                            "type": "hbox",
+                            "gap": 15,
+                            "children": [
+                              {
+                                "type": "cell",
+                                "id": "amtrn",
+                                "w": 85,
+                                "h": 30,
+                                "text": "Train",
+                                "fill": "#64B5F6",
+                                "tc": "#fff"
+                              },
+                              {
+                                "type": "cell",
+                                "id": "amsync",
+                                "w": 80,
+                                "h": 30,
+                                "text": "Sync",
+                                "fill": "#64B5F6",
+                                "tc": "#fff"
+                              }
+                            ]
+                          }
+                        ],
+                        "y0": 227
+                      }
+                    ]
+                  },
+                  {
+                    "type": "cell",
+                    "id": "amgpu",
+                    "x": 20,
+                    "y0": 148,
+                    "w": 340,
+                    "h": 18,
+                    "text": "GPU: N (2ⁿ topology)",
+                    "fill": "#1565C0",
+                    "tc": "#fff"
+                  }
+                ]
+              },
+              {
+                "type": "container",
+                "id": "amint",
+                "w": 100,
+                "h": 170,
+                "fill": "#EDE7F6",
+                "stroke": "#4527A0",
+                "sw": 2,
+                "children": [
+                  {
+                    "type": "title",
+                    "id": "amint_t",
+                    "text": "Interface",
+                    "fs": 11,
+                    "color": "#4527A0",
+                    "y0": 8
+                  },
+                  {
+                    "type": "text",
+                    "id": "aminto",
+                    "text": "submit / poll / shutdown",
+                    "fs": 8,
+                    "color": "#4527A0",
+                    "y0": 70,
+                    "cx": 615,
+                    "w": 90
+                  }
+                ]
+              },
+              {
+                "type": "container",
+                "id": "atbg",
+                "w": 150,
+                "h": 170,
+                "fill": "#E8F5E9",
+                "stroke": "#2E7D32",
+                "sw": 2,
+                "children": [
+                  {
+                    "type": "title",
+                    "id": "att",
+                    "text": "Tail Entity",
+                    "fs": 11,
+                    "color": "#2E7D32",
+                    "y0": 20
+                  },
+                  {
+                    "type": "cell",
+                    "id": "atvllm",
+                    "x": 10,
+                    "y0": 55,
+                    "w": 130,
+                    "h": 22,
+                    "text": "vLLM Engine",
+                    "sub": "No NCCL, No training",
+                    "fill": "#A5D6A7",
+                    "tc": "#1B5E20"
+                  },
+                  {
+                    "type": "cell",
+                    "id": "atgpu",
+                    "x": 10,
+                    "y0": 135,
+                    "w": 130,
+                    "h": 18,
+                    "text": "GPU: 1 (any — no topology)",
+                    "fill": "#2E7D32",
+                    "tc": "#fff"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

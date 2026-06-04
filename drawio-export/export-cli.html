@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<link rel="stylesheet" type="text/css" href="../drawio/src/main/webapp/styles/grapheditor.css" />
+	<style>
+		body { overflow: hidden; margin: 0; padding: 0; }
+		.geBlock { z-index:-3; margin:100px; margin-top:40px; margin-bottom:30px; padding:20px; text-align:center; min-width:50%; }
+	</style>
+</head>
+<body class="geEditor">
+	<div id="geInfo">
+		<div class="geBlock">
+			<h1>draw.io CLI Export</h1>
+			<h2 id="geStatus">Loading...</h2>
+		</div>
+	</div>
+
+	<script type="text/javascript">
+		// ========== Environment setup (same mechanism as vscode-drawio) ==========
+		Object.defineProperty(window, "mxIsElectron", { value: false });
+		Object.defineProperty(document, "cookie", { value: "" });
+
+		var isLocalStorage = false;
+
+		var storage = {};
+		Object.defineProperty(window, "localStorage", {
+			value: {
+				getItem: function (key) { return storage[key]; },
+				setItem: function (key, val) { storage[key] = val; },
+				removeItem: function (key) { delete storage[key]; },
+			}
+		});
+
+		var urlParams = {
+			embed: "1", configure: "1", proto: "json",
+			ui: "min", dark: "0",
+			noSaveBtn: "1", noExitBtn: "1",
+		};
+
+		// Global functions needed by app.min.js (from bootstrap.js)
+		function mxmeta(name, content, httpEquiv) {
+			try {
+				var s = document.createElement('meta');
+				if (name != null) s.setAttribute('name', name);
+				s.setAttribute('content', content);
+				if (httpEquiv != null) s.setAttribute('http-equiv', httpEquiv);
+				var t = document.getElementsByTagName('meta')[0];
+				t.parentNode.insertBefore(s, t);
+			} catch (e) {}
+		}
+
+		function mxscript(src, onLoad, id, dataAppKey, noWrite, onError) {
+			if (onLoad != null || noWrite) {
+				var s = document.createElement('script');
+				s.setAttribute('type', 'text/javascript');
+				s.setAttribute('src', src);
+				var r = false;
+				if (id != null) s.setAttribute('id', id);
+				if (dataAppKey != null) s.setAttribute('data-app-key', dataAppKey);
+				if (onLoad != null) {
+					s.onload = s.onreadystatechange = function () {
+						if (!r && (!this.readyState || this.readyState == 'complete')) {
+							r = true; onLoad();
+						}
+					};
+				}
+				if (onError != null) {
+					s.onerror = function(e) { onError('Failed to load ' + src, e); };
+				}
+				var t = document.getElementsByTagName('script')[0];
+				if (t != null) t.parentNode.insertBefore(s, t);
+			} else {
+				document.write('<script src="' + src + '"' +
+					(id != null ? ' id="' + id + '" ' : '') +
+					(dataAppKey != null ? ' data-app-key="' + dataAppKey + '" ' : '') +
+					'></scr' + 'ipt>');
+			}
+		}
+
+		function mxinclude(src) {
+			var g = document.createElement('script');
+			g.type = 'text/javascript'; g.async = true; g.src = src;
+			var s = document.getElementsByTagName('script')[0];
+			s.parentNode.insertBefore(g, s);
+		}
+
+		window._exportResolve = null;
+
+		// ========== Message bridge ==========
+		// draw.io sends messages via window.opener.postMessage().
+		// draw.io receives messages via window message events where source === window.opener.
+		var opener = {
+			postMessage: function (msg) {
+				try {
+					var data = (typeof msg === 'string') ? JSON.parse(msg) : msg;
+
+					if (data.event === 'configure') {
+						window._drawioAction({
+							action: "configure",
+							config: {
+								compressXml: false,
+								defaultLibraries: "general",
+								libraries: [],
+								customLibraries: [],
+								plugins: [],
+							}
+						});
+						return;
+					}
+
+					if (data.event === 'init') {
+						window._drawioReady = true;
+						return;
+					}
+
+					if (data.event === 'export') {
+						if (window._exportResolve) {
+							window._exportResolve(data.data || data);
+							window._exportResolve = null;
+						}
+						return;
+					}
+				} catch (e) { /* ignore */ }
+			}
+		};
+		Object.defineProperty(window, "opener", { value: opener });
+
+		// Send an action into draw.io
+		window._drawioAction = function (action) {
+			var evt = new Event("message");
+			evt.source = window.opener;
+			evt.data = JSON.stringify(action);
+			window.dispatchEvent(evt);
+		};
+
+		// ========== Export API (called by Playwright via page.evaluate) ==========
+		window.exportDrawio = function (xml, format, opts) {
+			format = format || 'xmlpng';
+			opts = opts || {};
+			return new Promise(function (resolve, reject) {
+				window._exportResolve = function (data) {
+					resolve(typeof data === 'string' ? data : data.data || data);
+				};
+
+				// 1) Load the XML into editor
+				window._drawioAction({ action: "load", xml: xml, autosave: 1 });
+
+				// 2) Wait for load, then export
+				setTimeout(function () {
+					var exportAction = {
+						action: "export", format: format,
+						actionId: "e_" + Date.now()
+					};
+					if (opts.scale) exportAction.scale = opts.scale;
+					if (opts.border) exportAction.border = opts.border;
+					window._drawioAction(exportAction);
+				}, 500);
+
+				// Safety timeout
+				setTimeout(function () {
+					if (window._exportResolve) {
+						window._exportResolve = null;
+						reject(new Error('Export timed out'));
+					}
+				}, 15000);
+			});
+		};
+	</script>
+
+	<script src="../drawio/src/main/webapp/js/PreConfig.js"></script>
+	<script src="../drawio/src/main/webapp/js/app.min.js"></script>
+	<script src="../drawio/src/main/webapp/js/extensions.min.js"></script>
+	<script src="../drawio/src/main/webapp/js/stencils.min.js"></script>
+	<script src="../drawio/src/main/webapp/js/shapes-14-6-5.min.js"></script>
+	<script src="../drawio/src/main/webapp/js/PostConfig.js"></script>
+
+	<script type="text/javascript">
+		(function () {
+			var origInit = EditorUi.prototype.init;
+			EditorUi.prototype.init = function () {
+				window._editorUi = this;
+				return origInit.apply(this, arguments);
+			};
+		})();
+		App.main();
+	</script>
+</body>
+</html>
